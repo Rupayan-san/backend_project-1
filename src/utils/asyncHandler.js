@@ -1,5 +1,6 @@
+//asyncHandler is used in Express.js to handle errors in async routes so that we dont have to write try catch multiple times.
 const asyncHandler = (func) => {
-    (req, res, next) => {
+    return (req, res, next) => {
         Promise.resolve(func(req, res, next)).catch((err) => next(err))
     }
 }

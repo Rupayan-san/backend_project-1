@@ -1,10 +1,10 @@
 import dotenv from "dotenv"
-import express from "express"
+import dns from "node:dns"
+dns.setServers(["8.8.8.8", "8.8.4.4"])
+import { app } from "./app.js"
 import { connect } from "mongoose"
 import connectDB from "./db/db.js"
 dotenv.config()
-
-const app = express()
 
 console.log(process.env.MongoDB_URL)
 connectDB()
@@ -43,3 +43,4 @@ connectDB()
     }
 })()
 */
+// restarted
