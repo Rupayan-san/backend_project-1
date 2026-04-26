@@ -53,7 +53,7 @@ const userSchema = new Schema(
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next(); //checks if the password is already encrypted cuz we dont want to encrypt repeatedly
 
-    this.password = bcrypt.hash(this.password, 10) // encrypts the password
+    this.password = await bcrypt.hash(this.password, 10) // encrypts the password
     next()
 })
 
