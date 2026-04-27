@@ -7,26 +7,32 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 
 const registerUser = asyncHandler (async (req, res) => {
     const {userName, email, password, fullName} = req.body
-    console.log("username:", userName);
+    // console.log("username:", userName);
 
     // checking if the following fields are acceptable or not
     if (
-        [fullName, email, userName, password].some((field) => field?.trim() === "")
+        [fullName, email, userName, password].some((field) => !field || field.trim() === "")
     ) {
-        throw new ApiError(400, "all fields are required")
+        throw new ApiError(400, "All fields are required")
     }
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{userName}, {email}] //Return documents where at least one condition is true.
     })
     if (existedUser){
-        throw ApiError(409, "User with this email or username already exists.")
+        throw new ApiError(409, "User with this email or username already exists.")
     }
     
-    const avatarLocalPath = req.files?.avatar[0]?.path; //getting the path of our image
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    const avatarLocalPath = req.files?.avatar?.[0]?.path; //getting the path of our image
+
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
+
+
     if (!avatarLocalPath) {
-        throw ApiError(400, "Avatar image is mandatory")
+        throw new ApiError(400, "Avatar image is mandatory")
     }
 
 
@@ -34,7 +40,7 @@ const registerUser = asyncHandler (async (req, res) => {
     const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
     if (!avatar) {
-        throw ApiError(400, "Avatar image is mandatory")
+        throw new ApiError(400, "Avatar image is mandatory")
     }
 
     const user = await User.create({

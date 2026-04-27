@@ -30,8 +30,7 @@ const userSchema = new Schema(
             required: true
         },
         coverImage: {
-            type: String,
-            required: true
+            type: String
         },
         watchHistory: [
             {
@@ -50,15 +49,14 @@ const userSchema = new Schema(
     }, { timestamps: true }
 )
 
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next(); //checks if the password is already encrypted cuz we dont want to encrypt repeatedly
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return; //checks if the password is already encrypted cuz we dont want to encrypt repeatedly
 
     this.password = await bcrypt.hash(this.password, 10) // encrypts the password
-    next()
 })
 
 userSchema.methods.isPasswordCorrect = async function (password) { // making a custom method to check if the password sent by user matches our encrypted password
-    return await bcrypt.compare(passowrd, this.password)
+    return await bcrypt.compare(password, this.password)
 }
 
 userSchema.methods.generateAccessToken = function(){
