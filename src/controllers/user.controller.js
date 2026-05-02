@@ -85,10 +85,10 @@ const loginUser = asyncHandler(async (req, res) => {
     login using the credentials
     generate access token and refresh token
     */
-    const { userName, email, password } = req.body
+    const { userName, email, password } = req.body    
 
     // we are logging in using either email or username
-    if (!userName || !email) {
+    if (!(userName || email)) {
         throw new ApiError(400, "email or username is required")
     }
 
@@ -96,19 +96,19 @@ const loginUser = asyncHandler(async (req, res) => {
     const user = await User.findOne({
         $or: [{ userName }, { email }]
     })
-
+    
     if (!user) {
         return new ApiError(404, "User not found")
     }
 
     const isPasswordValid = await user.isPasswordCorrect(password)
-
+    
     if (!isPasswordValid) {
-        return new ApiError(401, "Invalid user credentials")
+        throw new ApiError(401, "Invalid user credentials")
     }
 
     const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
-    const loggedInUser = await user.findById(user._id).select("-password -refreshToken")
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
     // this is to secure, so that no one from frontend can change cookies on their own
     const options = {
@@ -116,6 +116,7 @@ const loginUser = asyncHandler(async (req, res) => {
         secure: true
     }
 
+    // This is a response chain in Express that sends back data and sets cookies after login.
     return res
     .status(200)
     .cookie("accessToken", accessToken, options)
