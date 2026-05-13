@@ -1,14 +1,14 @@
 import dotenv from "dotenv"
+dotenv.config({
+    path: './.env'
+    }
+)
 import dns from "node:dns"
 dns.setServers(["8.8.8.8", "8.8.4.4"])
 import { app } from "./app.js"
 import { connect } from "mongoose"
 import connectDB from "./db/db.js"
 import path from "node:path"
-dotenv.config({
-    path: './.env'
-    }
-)
 
 console.log(process.env.MongoDB_URL)
 connectDB()
