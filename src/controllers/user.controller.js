@@ -151,7 +151,8 @@ const logoutUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: true
     }
-
+    
+    
     return res
         .status(200)
         .clearCookie("accessToken", options)
@@ -172,7 +173,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             process.env.REFRESH_TOKEN_SECRET
         )
     
-        const user = User.findById(decodedToken?._id)
+        const user = await User.findById(decodedToken?._id)
     
         if(!user){
             throw new ApiError(401, "Invalid refresh token")
@@ -182,7 +183,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Refresh token is expired or used")
         }
     
-        const {accessToken, newRefreshToken} = generateAccessAndRefreshTokens(user._id)
+        const {accessToken, refreshToken:newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
     
         const options = {
             httpOnly: true,
@@ -210,7 +211,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changePassword = asyncHandler(async(req, res) => {
     const {oldPassword, newPassword} = req.body
 
-    const user = User.findById(req.user?._id)
+    const user = await User.findById(req.user?._id)
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 
     if (!isPasswordCorrect) {
@@ -229,24 +230,26 @@ const getCurrentUser = asyncHandler(async(req, res) => {
     return res
     .status(200)
     .json(
-        200,
-        req.user,
-        "current user fetched successfully"
+        new ApiResponse(
+            200,
+            req.user,
+            "current user fetched successfully"
+        )
     )
 })
 
 const updateAccountDetails = asyncHandler(async(req, res) => {
     const {userName, email} = req.body
 
-    if(!fullName || !email){
+    if(!userName || !email){
         throw new ApiError(400, "All fields are required")
     }
 
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
-                fullName,
+                userName,
                 email: email
             }
         }, {new: true}
@@ -327,7 +330,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
     const channel = await User.aggregate([
         {
             $match: {
-                username: username?.toLowerCase()
+                userName: username?.toLowerCase()
             }
         },
         {
@@ -349,10 +352,10 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
         {
             $addFields:{
                 subscribersCount: {
-                    $size: "subscribers"
+                    $size: "$subscribers"
                 },
                 channelSubscribedToCount: {
-                    $size: "subscriberdTo"
+                    $size: "$subscriberdTo"
                 },
                 isSubscribed: {
                     $cond: {
@@ -366,7 +369,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
         {
             $project: {
                 fullName: 1,
-                username: 1,
+                userName: 1,
                 subscribedToCount: 1,
                 channelSubscribedToCount: 1,
                 isSubscribed: 1,
@@ -434,9 +437,11 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     return res
     .status(200)
     .json(
-        200,
-        user[0].watchHistory,
-        "Watch history fetched successfully"
+        new ApiResponse(
+            200,
+            user[0].watchHistory,
+            "Watch history fetched successfully"
+        )
     )
 })
 
