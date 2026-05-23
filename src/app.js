@@ -18,9 +18,24 @@ app.use(cookieParser())
 
 //route import
 import userRouter from './routes/user.router.js'
+import videoRouter from './routes/video.router.js'
 
 
 // routes declaration
 app.use("/api/v1/users", userRouter)
+app.use("/api/v1/videos", videoRouter)
 
-export { app }
+// global error handler - must be after all routes
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500
+    const message = err.message || "Something went wrong"
+
+    return res.status(statusCode).json({
+        success: false,
+        statusCode,
+        message,
+        errors: err.errors || []
+    })
+})
+
+export { app }
