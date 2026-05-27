@@ -4,7 +4,7 @@ import { User } from "../models/user.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -52,6 +52,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
         thumbnail: thumbnail.url,
         duration: videoFile.duration,
         isPublished: true,
+        videoPublicId: videoFile.public_id,
+        thumbnailPublicId: thumbnail.public_id,
         owner
     })
 
@@ -113,6 +115,7 @@ const updateVideo = asyncHandler(async (req, res) => {
             throw new ApiError(400, "error while uploading thumbnail in cloudinary")
         }
         updateFields.thumbnail = thumbnail.url
+        updateFields.thumbnailPublicId = thumbnail.public_id
     }
     
     const video = await Video.findByIdAndUpdate(
@@ -139,6 +142,28 @@ const updateVideo = asyncHandler(async (req, res) => {
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: delete video
+
+    if (!videoId || !isValidObjectId(videoId)) {
+        throw new ApiError(400, "invalid video id")
+    }
+
+    const video = await Video.findById(videoId)
+    if (!video) {
+        throw new ApiError(400, "video not found")
+    }
+
+    await deleteFromCloudinary(video?.videoPublicId, "video")
+    await deleteFromCloudinary(video?.thumbnailPublicId, "image")
+    
+    const deletedVideo = await Video.findByIdAndDelete(videoId)
+
+    if (!deletedVideo) {
+        throw new ApiError(404, "Video not found");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, deletedVideo, "video deleted successfully"))
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {

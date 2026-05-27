@@ -23,6 +23,12 @@ const videoSchema = new Schema(
             type: Number,
             required: true
         },
+        videoPublicId: {
+            type: String
+        },
+        thumbnailPublicId: {
+            type: String
+        },
         views: {
             type: Number,
             default: 0
