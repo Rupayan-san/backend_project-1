@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { publishAVideo, getVideoById, updateVideo, deleteVideo, togglePublishStatus } from "../controllers/video.controller.js";
+import { publishAVideo, getVideoById, updateVideo, deleteVideo, togglePublishStatus, getAllVideos } from "../controllers/video.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import verify from "jsonwebtoken";
@@ -28,5 +28,7 @@ router.route("/update-details/:videoId").patch(verifyJWT, upload.single("thumbna
 router.route("/delete-video/:videoId").delete(verifyJWT, deleteVideo)
 
 router.route("/toggle-publish/:videoId").patch(verifyJWT, togglePublishStatus)
+
+router.route("/get-all-videos").get(verifyJWT, getAllVideos)
 
 export default router

@@ -8,8 +8,63 @@ import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+    const { page = 1, limit = 10, query, sortBy , sortType = 1, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
+
+    if (!userId || !isValidObjectId(userId)) {
+        throw new ApiError(400, "enter a valid user id")
+    }
+    
+    const pipeline = [
+        {
+            $match:{
+                owner: new mongoose.Types.ObjectId(userId)
+            }
+        }
+    ]
+
+    if (query) {
+        pipeline.push(
+            {
+                $match: {
+                    title: {
+                        $regex: query,
+                        $options: "i"
+                    }
+                }
+            }
+        )
+    }
+
+    if (sortBy) {
+        pipeline.push(
+            {
+                $sort: {
+                    [sortBy]: sortType
+                }
+            }
+        )
+    }
+
+    const skip = (page - 1) * limit
+    pipeline.push(
+        {
+            $skip: skip
+        },
+        {
+            $limit: Number(limit)
+        }
+    )
+
+    if (!pipeline?.length) {
+        throw new ApiError(404, "no videos found")
+    }
+
+    const videos = await Video.aggregate(pipeline)
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, videos, "videos fetched succesfully"))
 
 })
 
