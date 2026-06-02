@@ -69,6 +69,29 @@ const addComment = asyncHandler(async (req, res) => {
 
 const updateComment = asyncHandler(async (req, res) => {
     // TODO: update a comment
+    const {commentId} = req.params
+    const {newComment} = req.body
+
+    if (!commentId || !isValidObjectId(commentId)) {
+        throw new ApiError(404, "invalid comment id")
+    }
+
+    if (!newComment || newComment.trim() === "") {
+        throw new ApiError(400, "enter a valid comment")
+    }
+
+    const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        {
+            $set: {
+                content: newComment
+            }
+        }, {new: true}
+    )
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, updatedComment, "comment updated successfully"))
 })
 
 const deleteComment = asyncHandler(async (req, res) => {
