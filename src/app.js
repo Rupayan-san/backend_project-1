@@ -19,11 +19,13 @@ app.use(cookieParser())
 //route import
 import userRouter from './routes/user.router.js'
 import videoRouter from './routes/video.router.js'
+import commentRouter from './routes/comment.router.js'
 
 
 // routes declaration
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/videos", videoRouter)
+app.use("/api/v1/comments", commentRouter)
 
 // global error handler - must be after all routes
 app.use((err, req, res, next) => {
@@ -38,4 +40,4 @@ app.use((err, req, res, next) => {
     })
 })
 
-export { app }
+export { app }

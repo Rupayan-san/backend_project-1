@@ -1,5 +1,6 @@
-import mongoose from "mongoose"
+import mongoose, {isValidObjectId} from "mongoose"
 import {Comment} from "../models/comment.model.js"
+import { Video } from "../models/videos.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
@@ -9,10 +10,61 @@ const getVideoComments = asyncHandler(async (req, res) => {
     const {videoId} = req.params
     const {page = 1, limit = 10} = req.query
 
+    if (!videoId || !isValidObjectId(videoId)) {
+        throw new ApiError(404, "invalid video id")
+    }
+
+    const skip = (page - 1) * limit
+
+    const comments = await Comment.aggregate([
+        {
+            $match: {
+                video: new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $skip: skip
+        },
+        {
+            $limit: Number(limit)
+        }
+    ])
+
+    if (!comments?.length) {
+        throw new ApiError(404, "no comments")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, comments, "comments fetched successfully")
+    )
+
+
 })
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
+    const {content, video, owner} = req.body
+
+    if (!video || !isValidObjectId(video)) {
+        throw new ApiError(404, "invalid video")
+    }
+
+    if (!owner || !isValidObjectId(owner)) {
+        throw new ApiError(404, "invalid owner")
+    }
+
+    const comment = await Comment.create({
+        content,
+        video,
+        owner
+    })
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, comment, "comment added succesfully"))
+
 })
 
 const updateComment = asyncHandler(async (req, res) => {
@@ -27,5 +79,5 @@ export {
     getVideoComments, 
     addComment, 
     updateComment,
-     deleteComment
-    }
+    deleteComment
+}
