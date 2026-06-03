@@ -9,7 +9,8 @@ const tweetSchema = new Schema(
         },
         content: {
             type: String,
-            required: true
+            required: true,
+            maxLength: 100
         }
     }, {timestamps: true}
 )
