@@ -38,6 +38,27 @@ const createTweet = asyncHandler(async (req, res) => {
 
 const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
+    const ownerId = req.user?._id
+
+    if (!ownerId || !isValidObjectId(ownerId)) {
+        throw new ApiError(400, "invalid owner id")
+    }
+    
+    const tweets = await Tweet.aggregate([
+        {
+            $match:{
+                owner: new mongoose.Types.ObjectId(ownerId)
+            }
+        }
+    ])
+
+    if(!tweets?.length){
+        throw new ApiError(404, "no tweets found")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, tweets, "tweets fetched successfully"))
 })
 
 const updateTweet = asyncHandler(async (req, res) => {
