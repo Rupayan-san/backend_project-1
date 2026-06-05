@@ -115,7 +115,29 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
     // TODO: remove video from playlist
+    if (!playlistId || !isValidObjectId(playlistId)) {
+        throw new ApiError(400, "invalid playlist id")
+    }
 
+    if (!videoId || !isValidObjectId(videoId)) {
+        throw new ApiError(400, "invalid video id")
+    }
+
+    const removedVideo = await Playlist.findByIdAndUpdate(playlistId,
+        {
+            $pull:{
+                videos: new mongoose.Types.ObjectId(videoId)
+            }
+        }, {new: true}
+    )
+
+    if (!removedVideo) {
+        throw new ApiError(500, "failed to delete video from playlist")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, removedVideo, "video deleted from playlist successfully"))
 })
 
 const deletePlaylist = asyncHandler(async (req, res) => {
