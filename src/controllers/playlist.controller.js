@@ -86,6 +86,30 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
+
+    if (!playlistId || !isValidObjectId(playlistId)) {
+        throw new ApiError(400, "invalid playlist id")
+    }
+
+    if (!videoId || !isValidObjectId(videoId)) {
+        throw new ApiError(400, "invalid video id")
+    }
+
+    const addedVideo = await Playlist.findByIdAndUpdate(playlistId,
+        {
+            $addToSet:{
+                videos: new mongoose.Types.ObjectId(videoId)
+            }
+        }, {new: true}
+    )
+
+    if (!addedVideo) {
+        throw new ApiError(500, "failed to add video to playlist")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, addedVideo, "video added to playlist successfully"))
 })
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
