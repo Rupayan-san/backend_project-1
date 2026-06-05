@@ -68,6 +68,20 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 const getPlaylistById = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
     //TODO: get playlist by id
+
+    if (!playlistId || !isValidObjectId(playlistId)) {
+        throw new ApiError(400, "invalid playlist id")
+    }
+
+    const playlist = await Playlist.findById(playlistId)
+
+    if (!playlist) {
+        throw new ApiError(404, "playlist not found")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, playlist, "playlist fetched successfully"))
 })
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
