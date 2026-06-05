@@ -143,6 +143,20 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
 const deletePlaylist = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
     // TODO: delete playlist
+
+    if (!playlistId || !isValidObjectId(playlistId)) {
+        throw new ApiError(400, "invalid playlist id")
+    }
+
+    const deletedPlaylist = await Playlist.findByIdAndDelete(playlistId)
+
+    if (!deletedPlaylist) {
+        throw new ApiError(500, "failed to delete playlist")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, deletedPlaylist, "playlist deleted successfully"))
 })
 
 const updatePlaylist = asyncHandler(async (req, res) => {
