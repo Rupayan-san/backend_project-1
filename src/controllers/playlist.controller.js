@@ -7,8 +7,31 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 const createPlaylist = asyncHandler(async (req, res) => {
     const {name, description} = req.body
-
+    const ownerId = req.user?._id
     //TODO: create playlist
+
+    if (!name || !name.trim()) {
+        throw new ApiError(400, "enter valid name")
+    }
+
+    if (!description) {
+        description = ""
+    }
+
+    const playlist = await Playlist.create({
+        name,
+        description,
+        videos: [],
+        owner: new mongoose.Types.ObjectId(ownerId)
+    })
+
+    if (!playlist) {
+        throw new ApiError(500, "failed to create playlist")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, playlist, "playlist created"))
 })
 
 const getUserPlaylists = asyncHandler(async (req, res) => {

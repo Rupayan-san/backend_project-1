@@ -22,6 +22,7 @@ import videoRouter from './routes/video.router.js'
 import commentRouter from './routes/comment.router.js'
 import tweetRouter from './routes/tweet.router.js'
 import subscriptionRouter from './routes/subscription.router.js'
+import playlistRouter from './routes/playlist.router.js'
 
 
 // routes declaration
@@ -30,6 +31,7 @@ app.use("/api/v1/videos", videoRouter)
 app.use("/api/v1/comments", commentRouter)
 app.use("/api/v1/tweets", tweetRouter)
 app.use("/api/v1/subscriptions", subscriptionRouter)
+app.use("/api/v1/playlists", playlistRouter)
 
 // global error handler - must be after all routes
 app.use((err, req, res, next) => {
