@@ -163,6 +163,33 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
     const {name, description} = req.body
     //TODO: update playlist
+
+    if (!playlistId || !isValidObjectId(playlistId)) {
+        throw new ApiError(400, "invalid playlist id")
+    }
+
+    const updateFields = {}
+
+    if (name) {
+        updateFields.name = name
+    }
+    if (description) {
+        updateFields.description = description
+    }
+
+    const updatedPlaylist = await Playlist.findByIdAndUpdate(playlistId,
+        {
+            $set: updateFields
+        }, {new: true}
+    )
+
+    if (!updatedPlaylist) {
+        throw new ApiError(500, "failed to update fields")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, updatedPlaylist, "fields updated successfully"))
 })
 
 export {
