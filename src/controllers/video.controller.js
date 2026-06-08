@@ -122,13 +122,28 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    const userId = req.user?._id
     //TODO: get video by id
 
     if (!videoId || !isValidObjectId(videoId)) {
         throw new ApiError(400, "valid video id is required")
     }
 
-    const video = await Video.findById(videoId)
+    const video = await Video.findByIdAndUpdate(videoId,
+        {
+            $inc: {
+                views: 1
+            }
+        },{new: true}
+    )
+
+    const updateWatchHistory = await User.findByIdAndUpdate(userId,
+        {
+            $addToSet: {
+                watchHistory: new mongoose.Types.ObjectId(videoId)
+            }
+        }, {new: true}
+    )
 
     if (!video) {
         throw new ApiError(404, "video not found")
